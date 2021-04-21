@@ -1,0 +1,20 @@
+{
+  "private": true,
+  "name": "blind-up-timer",
+  "scripts": {
+    "spago": "spago",
+    "dev": "run-p watch serve",
+    "serve": "serve -s",
+    "watch": "spago bundle-app -w -t index.js -u '--strict --stash'",
+    "build": "spago bundle-app -t index.js -u '--strict --stash'",
+    "clean": "rm -rf output"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "npm-run-all": "^4.1.5",
+    "purescript": "^0.14.1",
+    "purescript-psa": "^0.8.2",
+    "serve": "^11.3.2",
+    "spago": "^0.20.0"
+  }
+}
