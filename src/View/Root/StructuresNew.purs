@@ -137,8 +137,7 @@ blindSetForm
   -> VNode
 blindSetForm onChange onDelete { id, small, big, minutes } =
   H.key (show id) $ H.div # H.kids
-    [ H.div # H.kids [ H.text $ show id ]
-    , H.button
+    [ H.button
         # H.onClick (const $ onDelete id)
         # H.kids [ H.text "Delete" ]
     , H.input
