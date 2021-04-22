@@ -91,15 +91,136 @@ structuresShow structureId = H.component do
   pure case mStructure of
     Nothing ->
       H.span # H.didCreate (const toNotFound)
-    Just { title } ->
-      H.div # H.kids
-        [ H.h1 # H.kids [ H.text title ]
-        , case currentBlindSet of
-            Nothing ->
-              H.button # H.onClick (const startTimer) # H.kids [ H.text "Start" ]
-            Just bs ->
-              H.div # H.kids
-                [ H.div # H.kids [ H.text $ (show bs.small) <> "/" <> (show bs.big) ]
-                , H.button # H.onClick (const stopTimer) # H.kids [ H.text "Stop" ]
+    Just { title, blindSets } ->
+      H.div # H.css styles # H.kids
+        [ H.div # H.css leftStyles # H.kids
+            [ H.header # H.css headerStyles # H.kids
+                [ H.h3 # H.kids [ H.text title ]
+                , case currentBlindSet of
+                    Nothing ->
+                      H.button
+                        # H.onClick (const startTimer)
+                        # H.kids [ H.text "Start" ]
+                    _ ->
+                      H.button
+                        # H.className "button-outline"
+                        # H.onClick (const stopTimer)
+                        # H.kids [ H.text "Stop" ]
                 ]
+            , H.div # H.css mainStyles # H.kids
+                [ case currentBlindSet of
+                    Nothing ->
+                      H.span
+                    Just bs ->
+                      H.div # H.css blindStyles # H.kids
+                        [ H.text $ (show bs.small) <> "/" <> (show bs.big)
+                        ]
+                ]
+            ]
+        , H.div # H.css rightStyles # H.kids
+            [ H.table # H.kids
+                [ H.thead # H.kids
+                    [ H.tr # H.kids
+                        [ H.th # H.kids [ H.text "Duration (m)" ]
+                        , H.th # H.kids [ H.text "SB" ]
+                        , H.th # H.kids [ H.text "BB" ]
+                        ]
+                    ]
+                , H.tbody # H.kids ((blindRow <$> blindSets) <> [ extraBlindRow ])
+                ]
+            ]
         ]
+
+blindRow :: BlindSet -> VNode
+blindRow bs =
+  H.key (show bs.id) $ H.tr # H.kids
+    [ H.td # H.kids [ H.text $ show bs.minutes ]
+    , H.td # H.kids [ H.text $ show bs.small ]
+    , H.td # H.kids [ H.text $ show bs.big ]
+    ]
+
+extraBlindRow :: VNode
+extraBlindRow =
+  H.key "extra" $ H.tr # H.kids
+    [ H.td # H.kids [ H.text "5" ]
+    , H.td # H.kids [ H.text "Double up" ]
+    , H.td # H.kids [ H.text "Double up" ]
+    ]
+
+styles :: String
+styles =
+  """
+  .& {
+    padding: 16px;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  """
+
+leftStyles :: String
+leftStyles =
+  """
+  .& {
+    padding-right: 16px;
+    width: 70%;
+    height: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  """
+
+headerStyles :: String
+headerStyles =
+  """
+  .& {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .& h3 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 80%;
+    margin-bottom: 0;
+  }
+  .& button {
+    margin-bottom: 0;
+  }
+  """
+
+rightStyles :: String
+rightStyles =
+  """
+  .& {
+    padding-left: 16px;
+    width: 30%;
+    height: 100%;
+    border-left: 2px solid #EEE;
+  }
+  """
+
+mainStyles :: String
+mainStyles =
+  """
+  .& {
+    flex-grow: 1;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  """
+
+blindStyles :: String
+blindStyles =
+  """
+  .& {
+    font-size: 80px;
+  }
+  """
