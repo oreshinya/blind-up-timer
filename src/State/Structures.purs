@@ -37,11 +37,11 @@ useStructure id = do
 
 useSaveStructure :: Render (Structure -> Effect Unit)
 useSaveStructure = do
-  find <- useFinder (GProxy :: _ Structures)
-  update <- useUpdater (GProxy :: _ Structures)
+  findState <- useFinder (GProxy :: _ Structures)
+  updateState <- useUpdater (GProxy :: _ Structures)
   pure \x -> do
-    update $ nmap $ cons x
-    find >>= toStorage
+    updateState $ nmap $ cons x
+    findState >>= toStorage
 
 fromStorage :: Effect (Maybe Structures)
 fromStorage = do

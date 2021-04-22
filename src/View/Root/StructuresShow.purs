@@ -5,19 +5,19 @@ module View.Root.StructuresShow
 import Prelude
 
 import Data.Array (drop, head, last, snoc)
-import Data.Maybe (Maybe(..), isNothing, maybe)
+import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (class Newtype)
 import Effect.Exception (throw)
-import Effect.Timer (IntervalId, clearInterval, setInterval, setTimeout)
+import Effect.Timer (IntervalId, clearInterval, setInterval)
 import Entity.BlindSet (BlindSet, extraBlindMinutes, toExtraBlind)
 import Entity.SE (SE, createSE, play)
 import Entity.Structure (StructureId)
 import Grain (class LocalGrain, LProxy(..), VNode, fromConstructor, useFinder, useUpdater, useValue)
 import Grain.Class.LProxy (initialState)
 import Grain.Markup as H
-import Grain.Router (redirectTo)
 import State.Structures (useStructure)
 import Util (nmap)
+import View.Root.NotFound (notFound)
 
 newtype ShowState = ShowState
   { blindSets :: Array BlindSet
@@ -48,10 +48,7 @@ structuresShow structureId = H.component do
   findState <- useFinder (LProxy :: _ ShowState)
   updateState <- useUpdater (LProxy :: _ ShowState)
 
-  let toNotFound = void $ setTimeout 1 do
-        when (isNothing mStructure) $ redirectTo "/not_found"
-
-      proceedNextBlind = do
+  let proceedNextBlind = do
         ShowState { blindSets } <- findState
         case head blindSets, last blindSets of
           Just fbs, Just lbs -> do
@@ -80,7 +77,7 @@ structuresShow structureId = H.component do
                   when (nextSeconds >= minutes * 60) do
                     proceedNextBlind
                     play s.se
-            updateState $ nmap _ { intervalId = Just intervalId}
+            updateState $ nmap _ { intervalId = Just intervalId }
 
       stopTimer = do
         ShowState { intervalId } <- findState
@@ -89,8 +86,7 @@ structuresShow structureId = H.component do
         updateState $ const state
 
   pure case mStructure of
-    Nothing ->
-      H.span # H.didCreate (const toNotFound)
+    Nothing -> notFound
     Just { title, blindSets } ->
       H.div # H.css styles # H.kids
         [ H.div # H.css leftStyles # H.kids
