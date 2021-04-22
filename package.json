@@ -8,7 +8,7 @@
     "watch": "spago bundle-app -w -t public/index.js -u '--strict --stash'",
     "build": "spago bundle-app -t public/index.js -u '--strict --stash'",
     "clean": "rm -rf output",
-    "deploy": "npm run build && cp public/index.html public/200.html && surge ./public oreshinya-but.surge.sh"
+    "deploy": "npm run build && cp public/index.html public/200.html && surge ./public https://oreshinya-but.surge.sh"
   },
   "license": "MIT",
   "dependencies": {
