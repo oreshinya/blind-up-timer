@@ -9,7 +9,7 @@ import Data.Maybe (Maybe(..), isNothing, maybe)
 import Data.Newtype (class Newtype)
 import Effect.Exception (throw)
 import Effect.Timer (IntervalId, clearInterval, setInterval, setTimeout)
-import Entity.BlindSet (BlindSet, toExtraBlind)
+import Entity.BlindSet (BlindSet, extraBlindMinutes, toExtraBlind)
 import Entity.SE (SE, createSE, play)
 import Entity.Structure (StructureId)
 import Grain (class LocalGrain, LProxy(..), VNode, fromConstructor, useFinder, useUpdater, useValue)
@@ -142,7 +142,7 @@ blindRow bs =
 extraBlindRow :: VNode
 extraBlindRow =
   H.key "extra" $ H.tr # H.kids
-    [ H.td # H.kids [ H.text "5" ]
+    [ H.td # H.kids [ H.text (show extraBlindMinutes) ]
     , H.td # H.kids [ H.text "Double up" ]
     , H.td # H.kids [ H.text "Double up" ]
     ]

@@ -2,6 +2,7 @@ module Entity.BlindSet
   ( BlindSetId(..)
   , BlindSet
   , toExtraBlind
+  , extraBlindMinutes
   ) where
 
 import Prelude
@@ -33,5 +34,8 @@ toExtraBlind x = do
     { id
     , small: x.small * 2
     , big: x.big * 2
-    , minutes: 5
+    , minutes: extraBlindMinutes
     }
+
+extraBlindMinutes :: Int
+extraBlindMinutes = 5
