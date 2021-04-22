@@ -113,21 +113,28 @@ structuresNew = H.component do
             updateState $ nmap _ { error = Nothing }
             navigateTo $ "/structures/" <> unwrap structure.id
 
-  pure $ H.div # H.kids
-    [ case error of
+  pure $ H.div # H.css styles # H.kids
+    [ H.header # H.css headerStyles # H.kids
+        [ H.h3 # H.kids [ H.text "New structure" ]
+        , H.button
+            # H.onClick (const save)
+            # H.kids [ H.text "Save" ]
+        ]
+    , case error of
         Nothing -> H.span
-        Just msg -> H.p # H.kids [ H.text msg ]
-    , H.button
-        # H.onClick (const save)
-        # H.kids [ H.text "Save" ]
+        Just msg -> H.p # H.css errTxtStyles # H.kids [ H.text msg ]
+    , H.label # H.kids [ H.text "Title" ]
     , H.input
         # H.value title
         # H.onChange updateTitle
-    , H.button
-        # H.onClick (const add)
-        # H.kids [ H.text "Add SB/BB" ]
+    , H.label # H.kids [ H.text "Blinds" ]
     , H.div # H.kids
         (blindSetForm updateBlindSet deleteBlindSet <$> blindSets)
+    , H.div # H.css addBtnContainerStyles # H.kids
+        [ H.button
+            # H.onClick (const add)
+            # H.kids [ H.text "Add SB/BB" ]
+        ]
     ]
 
 blindSetForm
@@ -136,13 +143,14 @@ blindSetForm
   -> BlindSetForm
   -> VNode
 blindSetForm onChange onDelete { id, small, big, minutes } =
-  H.key (show id) $ H.div # H.kids
+  H.key (show id) $ H.div # H.css bsStyles # H.kids
     [ H.button
+        # H.className "button-outline"
         # H.onClick (const $ onDelete id)
         # H.kids [ H.text "Delete" ]
     , H.input
         # H.value minutes
-        # H.placeholder "minutes"
+        # H.placeholder "Duration (m)"
         # H.onChange updateMinutes
     , H.input
         # H.value small
@@ -175,3 +183,69 @@ blindSetForm onChange onDelete { id, small, big, minutes } =
         Just el -> do
           val <- I.value el
           onChange id _ { big = val }
+
+styles :: String
+styles =
+  """
+  .& {
+    padding: 16px;
+    width: 50%;
+    height: 100vh;
+    margin: 0 auto;
+  }
+  """
+
+errTxtStyles :: String
+errTxtStyles =
+  """
+  .& {
+    color: #dc3545;
+  }
+  """
+
+headerStyles :: String
+headerStyles =
+  """
+  .& {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+  }
+  .& h3 {
+    margin-bottom: 0;
+  }
+  .& button {
+    margin-bottom: 0;
+  }
+  """
+
+bsStyles :: String
+bsStyles =
+  """
+  .& {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .& button {
+    margin-bottom: 0;
+  }
+  .& input {
+    font-size: 80%;
+    margin-bottom: 0;
+    margin-left: 8px;
+  }
+  """
+
+addBtnContainerStyles :: String
+addBtnContainerStyles =
+  """
+  .& {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  """
