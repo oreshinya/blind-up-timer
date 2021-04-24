@@ -93,7 +93,7 @@ structuresShow structureId = H.component do
   pure case mStructure of
     Nothing -> notFound
     Just { title, blindSets } ->
-      H.div # H.css styles # H.kids
+      H.div # H.didDelete (const stopTimer) # H.css styles # H.kids
         [ H.div # H.css leftStyles # H.kids
             [ H.header # H.css headerStyles # H.kids
                 [ H.h3 # H.kids [ H.text title ]
