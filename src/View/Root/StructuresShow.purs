@@ -49,7 +49,7 @@ structuresShow structureId = H.component do
   updateState <- useUpdater (LProxy :: _ ShowState)
 
   let proceedNextBlind = do
-        ShowState { blindSets } <- findState
+        ShowState { blindSets, se } <- findState
         case head blindSets, last blindSets of
           Just fbs, Just lbs -> do
             extra <- toExtraBlind lbs
@@ -58,6 +58,7 @@ structuresShow structureId = H.component do
               , currentBlindSet = Just fbs
               , currentSeconds = 0
               }
+            play se
           _, _ -> throw "Something went wrong."
 
       startTimer =
@@ -74,9 +75,7 @@ structuresShow structureId = H.component do
               case s.currentBlindSet of
                 Nothing -> throw "Something went wrong."
                 Just { minutes } ->
-                  when (nextSeconds >= minutes * 60) do
-                    proceedNextBlind
-                    play s.se
+                  when (nextSeconds >= minutes * 60) proceedNextBlind
             updateState $ nmap _ { intervalId = Just intervalId }
 
       stopTimer = do
