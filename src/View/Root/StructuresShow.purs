@@ -5,8 +5,13 @@ module View.Root.StructuresShow
 import Prelude
 
 import Data.Array (drop, head, last, snoc)
-import Data.Maybe (Maybe(..), maybe)
+import Data.DateTime (adjust)
+import Data.Either (hush)
+import Data.Formatter.DateTime (formatDateTime)
+import Data.Int (toNumber)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (class Newtype)
+import Data.Time.Duration (Seconds(..))
 import Effect.Exception (throw)
 import Effect.Timer (IntervalId, clearInterval, setInterval)
 import Entity.BlindSet (BlindSet, extraBlindMinutes, toExtraBlind)
@@ -22,7 +27,7 @@ import View.Root.NotFound (notFound)
 newtype ShowState = ShowState
   { blindSets :: Array BlindSet
   , currentBlindSet :: Maybe BlindSet
-  , currentSeconds :: Int
+  , remainingSeconds :: Int
   , intervalId :: Maybe IntervalId
   , se :: SE
   }
@@ -36,7 +41,7 @@ instance localGrainShowState :: LocalGrain ShowState where
     pure $ ShowState
       { blindSets: []
       , currentBlindSet: Nothing
-      , currentSeconds: 0
+      , remainingSeconds: 0
       , intervalId: Nothing
       , se
       }
@@ -44,7 +49,7 @@ instance localGrainShowState :: LocalGrain ShowState where
 structuresShow :: StructureId -> VNode
 structuresShow structureId = H.component do
   mStructure <- useStructure structureId
-  ShowState { currentBlindSet } <- useValue (LProxy :: _ ShowState)
+  ShowState { remainingSeconds, currentBlindSet } <- useValue (LProxy :: _ ShowState)
   findState <- useFinder (LProxy :: _ ShowState)
   updateState <- useUpdater (LProxy :: _ ShowState)
 
@@ -56,7 +61,7 @@ structuresShow structureId = H.component do
             updateState $ nmap _
               { blindSets = drop 1 $ snoc blindSets extra
               , currentBlindSet = Just fbs
-              , currentSeconds = 0
+              , remainingSeconds = fbs.minutes * 60
               }
             play se
           _, _ -> throw "Something went wrong."
@@ -69,13 +74,9 @@ structuresShow structureId = H.component do
             proceedNextBlind
             intervalId <- setInterval 1000 do
               ShowState s <- findState
-              let nextSeconds = s.currentSeconds + 1
-              updateState $ nmap _ { currentSeconds = nextSeconds }
-
-              case s.currentBlindSet of
-                Nothing -> throw "Something went wrong."
-                Just { minutes } ->
-                  when (nextSeconds >= minutes * 60) proceedNextBlind
+              let nextSeconds = s.remainingSeconds - 1
+              updateState $ nmap _ { remainingSeconds = nextSeconds }
+              when (nextSeconds <= 0) proceedNextBlind
             updateState $ nmap _ { intervalId = Just intervalId }
 
       stopTimer = do
@@ -83,6 +84,11 @@ structuresShow structureId = H.component do
         maybe (pure unit) clearInterval intervalId
         state <- initialState (LProxy :: _ ShowState)
         updateState $ const state
+
+      remainingSecondsStr =
+        case adjust (Seconds $ toNumber remainingSeconds) bottom of
+          Nothing -> "00:00"
+          Just dt -> fromMaybe "00:00" $ hush $ formatDateTime "mm:ss" dt
 
   pure case mStructure of
     Nothing -> notFound
@@ -102,15 +108,18 @@ structuresShow structureId = H.component do
                         # H.onClick (const stopTimer)
                         # H.kids [ H.text "Stop" ]
                 ]
-            , H.div # H.css mainStyles # H.kids
-                [ case currentBlindSet of
-                    Nothing ->
-                      H.span
-                    Just bs ->
-                      H.div # H.css blindStyles # H.kids
+            , case currentBlindSet of
+                Nothing ->
+                  H.span
+                Just bs ->
+                  H.div # H.css mainStyles # H.kids
+                    [ H.h1 # H.kids
+                        [ H.text remainingSecondsStr
+                        ]
+                    , H.div # H.css blindStyles # H.kids
                         [ H.text $ (show bs.small) <> "/" <> (show bs.big)
                         ]
-                ]
+                    ]
             ]
         , H.div # H.css rightStyles # H.kids
             [ H.table # H.kids
@@ -209,6 +218,7 @@ mainStyles =
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
   }
   """
 
@@ -216,6 +226,6 @@ blindStyles :: String
 blindStyles =
   """
   .& {
-    font-size: 80px;
+    font-size: 9rem;
   }
   """
