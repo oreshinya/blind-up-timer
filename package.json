@@ -12,11 +12,12 @@
   },
   "license": "MIT",
   "dependencies": {
+    "esbuild": "^0.15.15",
     "npm-run-all": "^4.1.5",
-    "purescript": "^0.14.1",
+    "purescript": "^0.15.6",
     "purescript-psa": "^0.8.2",
-    "serve": "^11.3.2",
-    "spago": "^0.20.0",
-    "surge": "^0.23.0"
+    "serve": "^14.1.2",
+    "spago": "^0.20.9",
+    "surge": "^0.23.1"
   }
 }
